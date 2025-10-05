@@ -10,7 +10,7 @@ La interfaz es 100% **web** (HTML + JS) y usa **[Tau Prolog](https://tau-prolog.
 1. Descarga este repositorio
    - **Git**:  
      ```bash
-     git clone https://github.com/TU_USUARIO/seleccion-cursos-prolog.git
+     git clone https://github.com/Estreik16/Seleccion-cursos-prolog.git
      cd seleccion-cursos-prolog
      ```
    - **ZIP**: botón **Code → Download ZIP** y descomprime.
