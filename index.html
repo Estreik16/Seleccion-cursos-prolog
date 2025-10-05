@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Selección de Cursos (Prolog)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial; }
+body{ margin:0; padding:2rem; background:#0b1220; color:#e7eaf3; }
+h1{ margin-top:0 }
+.card{ background:#121a2b; border:1px solid #1c2742; border-radius:16px; padding:1.25rem; box-shadow:0 8px 24px rgb(0 0 0 / .25); }
+.grid{ display:grid; gap:1rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.btn{ background:#3b82f6; color:white; border:none; padding:.75rem 1rem; border-radius:12px; font-weight:600; cursor:pointer }
+.btn:disabled{ opacity:.6; cursor:not-allowed }
+input[type="number"]{ width:80px; border-radius:10px; border:1px solid #334163; padding:.25rem .5rem; background:#0b1220; color:#e7eaf3 }
+.pill{ display:inline-block; padding:.35rem .6rem; border:1px solid #334163; border-radius:999px; margin:.15rem; font-size:.85rem }
+.mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace }
+details{ background:#0e172a; border:1px solid #1f2a44; border-radius:12px; padding:.5rem 1rem }
+summary{ cursor:pointer; font-weight:600 }
+</style>
+<script src="https://unpkg.com/tau-prolog@0.3.4/modules/core.js"></script>
+<script src="https://unpkg.com/tau-prolog@0.3.4/modules/lists.js"></script>
+</head>
+<body>
+<h1>Selección de Cursos (Prolog)</h1>
+<p>Marca los cursos aprobados, ingresa tu calificación y calcula qué materias puedes inscribir respetando seriación y mínimos.</p>
+
+
+<div class="grid">
+<div class="card">
+<h2>Catálogo</h2>
+<div id="catalogo"></div>
+</div>
+
+
+<div class="card">
+<h2>Elegibilidad</h2>
+<button class="btn" id="calc">Calcular cursos elegibles</button>
+<div id="resultado" style="margin-top:1rem"></div>
+</div>
+
+
+<div class="card">
+<h2>Consola Prolog (opcional)</h2>
+<p class="mono">?- <input id="query" placeholder="elegible([calif(cs101,80)], X)." style="width:70%"> <button class="btn" id="run">Run</button></p>
+<pre id="out" class="mono"></pre>
+</div>
+</div>
+
+
+<details style="margin-top:1rem">
+<summary>Ver base de conocimiento</summary>
+<pre id="kbview" class="mono"></pre>
+</details>
+
+
+<script src="./app.js"></script>
+</body>
+</html>
