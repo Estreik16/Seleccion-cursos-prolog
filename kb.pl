@@ -27,7 +27,6 @@ prereq(cs302,  cs203,   60).
 % ---------------------
 % Predicados auxiliares
 % ---------------------
-% miembro/2 (para no depender de librerías)
 miembro(X, [X|_]).
 miembro(X, [_|T]) :- miembro(X, T).
 
@@ -36,16 +35,17 @@ miembro(X, [_|T]) :- miembro(X, T).
 nota_de(Curso, [calif(Curso, N)|_], N) :- !.
 nota_de(Curso, [_|T], N) :- nota_de(Curso, T, N).
 
-% aprobado(Curso, Califs, Min) :- existe calificacion y cumple mínimo
+% aprobado(Curso, Califs, Min) :- existe calificación y cumple mínimo
 aprobado(Curso, Califs, Min) :-
     nota_de(Curso, Califs, N),
     N >= Min.
 
 % satisface_prerreqs(Curso, Califs)
 % Verdadero si NO tiene prerrequisitos o TODOS están aprobados con su mínimo.
+% (Reescritura sin forall/2; usa doble negación)
 satisface_prerreqs(Curso, Califs) :-
-    \+ prereq(Curso, _, _);
-    forall(prereq(Curso, P, Min), aprobado(P, Califs, Min)).
+    \+ prereq(Curso, _, _);                              % no tiene prerrequisitos
+    \+ (prereq(Curso, P, Min), \+ aprobado(P, Califs, Min)).
 
 % faltantes(Curso, Califs, ListaFaltantes)
 % Regresa la lista de prerrequisitos que aún faltan por cumplir (con su mínimo).
