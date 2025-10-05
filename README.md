@@ -1,27 +1,38 @@
 # Selección de Cursos (Prolog + Tau Prolog)
 
+Este proyecto ayuda a un alumno/tutor a **seleccionar cursos** respetando la **seriación** y los **mínimos de aprobación** de prerrequisitos.  
+La interfaz es 100% **web** (HTML + JS) y usa **[Tau Prolog](https://tau-prolog.org/)** en el navegador, por lo que **no necesitas instalar Prolog** para probar.
 
-Este repositorio contiene una base de conocimiento en Prolog y una interfaz web con JavaScript (Tau Prolog) para ayudar a un alumno/tutor a seleccionar cursos respetando la seriación y el requisito de aprobación de cursos previos.
+---
 
+## Demo local rápida
 
-## Requisitos
-- Navegador moderno (Chrome/Firefox/Edge). No se necesita instalar nada.
+1. Descarga este repositorio
+   - **Git**:  
+     ```bash
+     git clone https://github.com/TU_USUARIO/seleccion-cursos-prolog.git
+     cd seleccion-cursos-prolog
+     ```
+   - **ZIP**: botón **Code → Download ZIP** y descomprime.
 
+2. Abre `index.html` en tu navegador  
+   (doble clic o usa un servidor local si tu navegador bloquea scripts locales).
 
-> **Opcional**: Si deseas desarrollar offline, descarga los archivos y abre `index.html` directamente.
+   **Servidor local (opcional pero recomendado):**
+   - Con Python:
+     ```bash
+     # dentro de la carpeta del proyecto
+     python -m http.server 5500
+     # visita http://localhost:5500/
+     ```
+   - Con VS Code: extensión **Live Server** → “Open with Live Server”.
 
+3. En la página:
+   - Marca los cursos que **ya aprobaste** e ingresa la **calificación**.
+   - Clic en **Calcular cursos elegibles** para ver qué materias puedes inscribir.
+   - Usa la **Consola Prolog** para ejecutar consultas manuales (terminan en punto `.`).
 
-## Cómo ejecutar
-1. Clona el repositorio o descarga el ZIP.
-2. Abre `index.html` en tu navegador.
-3. Marca los cursos que ya aprobaste e ingresa la calificación obtenida.
-4. Haz clic en **Calcular cursos elegibles** para ver qué cursos puedes inscribir.
+---
 
+## Estructura del proyecto
 
-## Cómo editar la base de conocimiento
-- Abre `kb.pl` y ajusta las materias, seriaciones y calificaciones mínimas.
-- Guarda y recarga la página.
-
-
-## Pruebas rápidas en la consola (en la misma interfaz)
-Puedes ejecutar consultas Prolog como:
