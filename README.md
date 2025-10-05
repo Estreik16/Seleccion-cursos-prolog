@@ -33,6 +33,3 @@ La interfaz es 100% **web** (HTML + JS) y usa **[Tau Prolog](https://tau-prolog.
    - Usa la **Consola Prolog** para ejecutar consultas manuales (terminan en punto `.`).
 
 ---
-
-## Estructura del proyecto
-
