@@ -24,10 +24,17 @@ prereq(cs301,  cs201,   70).
 prereq(cs302,  cs201,   70).
 prereq(cs302,  cs203,   60).
 
-% Auxiliares
+% ---------------------
+% Predicados auxiliares
+% ---------------------
 miembro(X, [X|_]).
 miembro(X, [_|T]) :- miembro(X, T).
 
+% negación como falla (evitamos \\+ para máxima compatibilidad)
+not(G) :- call(G), !, fail.
+not(_).
+
+% nota_de(Curso, ListaCalifs, Nota)
 nota_de(Curso, [calif(Curso, N)|_], N) :- !.
 nota_de(Curso, [_|T], N) :- nota_de(Curso, T, N).
 
@@ -35,65 +42,28 @@ aprobado(Curso, Califs, Min) :-
     nota_de(Curso, Califs, N),
     N >= Min.
 
-% Verdadero si no tiene prerrequisitos o todos están aprobados con su mínimo
+% Verdadero si NO tiene prerrequisitos o TODOS los prerrequisitos están aprobados
 satisface_prerreqs(Curso, Califs) :-
-    \\+ prereq(Curso, _, _);
-    ( forall(prereq(Curso, P, Min), aprobado(P, Califs, Min)) ).
+    not(prereq(Curso, _, _));                                   % sin prerrequisitos
+    not( (prereq(Curso, P, Min), not(aprobado(P, Califs, Min))) ). % no existe prereq sin aprobar
 
-% Lista de prerequisitos que faltan
+% Lista de prerequisitos faltantes
 faltantes(Curso, Califs, L) :-
-    findall(req(P, Min), (prereq(Curso, P, Min), \\+ aprobado(P, Califs, Min)), L).
+    findall(req(P, Min), (prereq(Curso, P, Min), not(aprobado(P, Califs, Min))), L).
 
-% Un curso es elegible si existe, no está ya aprobado y satisface prerrequisitos
+% Elegible si existe, no está ya aprobado y satisface prerrequisitos
 elegible(Califs, Curso) :-
     course(Curso, _, _, _),
-    \\+ (nota_de(Curso, Califs, _)),
+    not(nota_de(Curso, Califs, _)),
     satisface_prerreqs(Curso, Califs).
 
-% Recomendación por semestre
 recomendacion_por_semestre(Califs, Sem, L) :-
     findall(C, (elegible(Califs, C), course(C, _, _, Sem)), L).
 
-% utilidades para mostrar
 nombre(C, N)   :- course(C, N, _, _).
 creditos(C, Cr):- course(C, _, Cr, _).
 semestre(C, S) :- course(C, _, _, S).
 `;
-
-// --- Tau Prolog session ---
-const pl = window.pl;
-const session = new pl.type.Session({
-    // los módulos core y lists se cargan por las etiquetas <script> en index.html
-});
-
-function consultKB() {
-    return new Promise((resolve, reject) => {
-        session.consult(KB, {
-            success: () => resolve(),
-            error: (e) => reject(e)
-        });
-    });
-}
-
-function toListTerm(califs) {
-    // califs: [{id:"cs101", grade:80}, ...] -> [calif(cs101,80), ...]
-    const arr = califs.map(({ id, grade }) =>
-        new pl.type.Term("calif", [
-            new pl.type.Term(id),
-            new pl.type.Num(parseInt(grade, 10), false)
-        ])
-    );
-    return pl.type.fromJavaScript.apply(null, [arr]);
-}
-
-function runQuery(q) {
-    return new Promise((resolve, reject) => {
-        session.query(q, {
-            success: () => session.answers(x => resolve(x)),
-            error: (err) => reject(err)
-        });
-    });
-}
 
 // --- UI helpers ---
 const cursos = [
@@ -119,6 +89,7 @@ const $kbview = document.getElementById('kbview');
 
 $kbview.textContent = KB;
 
+// --- Render del catálogo ---
 function renderCatalogo() {
     const group = cursos.reduce((acc, c) => {
         acc[c.sem] = acc[c.sem] || [];
@@ -131,13 +102,13 @@ function renderCatalogo() {
         .map(sem => {
             const items = group[sem]
                 .map(c => `
-        <label style="display:flex;align-items:center;gap:.5rem;margin:.4rem 0">
+          <label style="display:flex;align-items:center;gap:.5rem;margin:.4rem 0">
             <input type="checkbox" data-id="${c.id}" class="aprobado">
             <span class="pill">${c.id}</span> ${c.nombre}
             <span style="margin-left:auto">Calif:
-            <input type="number" min="0" max="100" step="1" value="80" class="nota" data-id="${c.id}">
+              <input type="number" min="0" max="100" step="1" value="80" class="nota" data-id="${c.id}">
             </span>
-        </label>
+          </label>
         `)
                 .join('');
             return `<div class="card"><h3>Semestre ${sem}</h3>${items}</div>`;
@@ -145,61 +116,95 @@ function renderCatalogo() {
         .join('');
 }
 
+// --- Obtener calificaciones marcadas en la UI ---
 function getCalifs() {
     const checks = [...document.querySelectorAll('.aprobado:checked')];
     return checks.map(ch => {
         const id = ch.dataset.id;
         const grade = document.querySelector(`.nota[data-id="${id}"]`).value || 0;
-        return { id, grade };
+        return { id, grade: parseInt(grade, 10) || 0 };
     });
 }
 
+// --- Construye la lista Prolog como TEXTO: [calif(cs101,80), ...] ---
+function califsToString(califs) {
+    return '[' + califs.map(c => `calif(${c.id},${c.grade})`).join(',') + ']';
+}
+
+// --- Mostrar cursos elegibles ---
 function renderElegibles(list) {
     if (!list.length) {
         $resultado.innerHTML = '<p>No hay cursos elegibles con la información actual.</p>';
         return;
     }
-    $resultado.innerHTML =
-        '<ul>' + list.map(c => `<li><span class="pill mono">${c}</span></li>`).join('') + '</ul>';
+    const detalles = list.map(id => {
+        const c = cursos.find(x => x.id === id);
+        return `<li><span class="pill mono">${id}</span> – ${c ? c.nombre : ''}</li>`;
+    });
+    $resultado.innerHTML = '<ul>' + detalles.join('') + '</ul>';
 }
 
+// --- Calcular cursos elegibles (versión robusta con consultas de texto) ---
 async function calcular() {
-    $resultado.innerHTML = 'Calculando...';
-    await consultKB();
+    try {
+        $resultado.innerHTML = 'Calculando...';
 
-    const califs = getCalifs();
-    const listTerm = toListTerm(califs); // [calif(cs101,80), ...]
+        // Sesión limpia cada vez
+        const session = new pl.type.Session();
 
-    const X = new pl.type.Var('X');
-    const goal = new pl.type.Term('elegible', [listTerm, X]);
-
-    const elegibles = [];
-    await new Promise((resolve, reject) => {
-        session.query(goal, {
-            success: () => {
-                (function next() {
-                    session.answer(ans => {
-                        if (ans === false || ans === null) { resolve(); return; }
-                        const vx = ans.lookup('X');
-                        if (vx && vx.id) elegibles.push(vx.id);
-                        next();
-                    });
-                })();
-            },
-            error: reject
+        // Cargar KB
+        await new Promise((resolve, reject) => {
+            session.consult(KB, { success: resolve, error: reject });
         });
+
+        const califs = getCalifs();
+        const califsStr = califsToString(califs);        // p. ej. [calif(cs101,80),calif(math101,75)]
+        const query = `elegible(${califsStr}, X).`;      // consulta textual
+
+        const elegibles = [];
+
+        await new Promise((resolve, reject) => {
+            session.query(query, {
+                success: () => {
+                    (function next() {
+                        session.answer(ans => {
+                            if (ans === false || ans === null) { resolve(); return; }
+                            const subst = pl.format_answer(ans);   // p. ej. "X = cs102."
+                            const match = subst.match(/X\s*=\s*([a-zA-Z0-9_]+)/);
+                            if (match) elegibles.push(match[1]);
+                            next();
+                        });
+                    })();
+                },
+                error: (e) => {
+                    console.error('Tau Prolog lanzó un error en query:', e && e.toString ? e.toString() : e);
+                    reject(e);
+                }
+            });
+        });
+
+        renderElegibles(elegibles);
+
+    } catch (err) {
+        console.error('❌ Error durante el cálculo:', err && err.toString ? err.toString() : err);
+        $resultado.innerHTML = '<p style="color:#f66">Error al procesar la consulta (ver consola).</p>';
+    }
+}
+
+// --- Consola Prolog (también en modo texto) ---
+async function runConsole() {
+    const session = new pl.type.Session();
+
+    await new Promise((resolve, reject) => {
+        session.consult(KB, { success: resolve, error: reject });
     });
 
-    renderElegibles(elegibles);
-}
-
-async function runConsole() {
-    await consultKB();
     const q = $query.value.trim();
     if (!q.endsWith('.')) {
-        alert('Toda consulta debe terminar con punto.');
+        alert('Toda consulta debe terminar en punto.');
         return;
     }
+
     $out.textContent = '';
     session.query(q, {
         success: () => {
@@ -215,11 +220,14 @@ async function runConsole() {
                 });
             })();
         },
-        error: (e) => $out.textContent = 'Error: ' + e
+        error: (e) => {
+            console.error('Tau Prolog lanzó un error en consola:', e && e.toString ? e.toString() : e);
+            $out.textContent = 'Error: ' + (e && e.toString ? e.toString() : e);
+        }
     });
 }
 
-// Inicialización UI
+// --- Inicialización ---
 renderCatalogo();
 $calc.addEventListener('click', calcular);
 $run.addEventListener('click', runConsole);
